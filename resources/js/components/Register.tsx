@@ -88,7 +88,6 @@ const Register: React.FC = () => {
                             <Form onSubmit={handleSubmit}>
                                 {/* El resto del formulario */}
                                 <Form.Group className="mb-3" controlId="formBasicEmail">
-                                    <Form.Label>Email</Form.Label>
                                     <Form.Control type="email" placeholder="Ingresa tu email" value={email} onChange={(e) => setEmail(e.target.value)} />
                                 </Form.Group>
 
