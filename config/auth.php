@@ -41,8 +41,9 @@ return [
             'provider' => 'users',
         ],
         'api' => [
-            'driver' => 'passport',
+            'driver' => 'token',
             'provider' => 'users',
+            // si deseas usar sesiones aquí también, necesitarías ajustar esto
         ],
     ],
 

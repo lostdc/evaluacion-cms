@@ -10,8 +10,11 @@ const Login: React.FC = () => {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        // Aquí iría la lógica para manejar el login, como una petición a la API.
+        // Eliminamos la llamada para obtener la cookie CSRF.
+        // La autenticación será manejada mediante el token en el Local Storage.
+
         try {
+            // Realiza la solicitud de login.
             const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
@@ -25,10 +28,14 @@ const Login: React.FC = () => {
                 throw new Error('Error en la solicitud');
             }
 
+            // Asumimos que la respuesta incluye un token y posiblemente más datos del usuario.
             const data = await response.json();
-            console.log(data); // Maneja la respuesta
+            console.log(data);
 
-            // Redirige a /home si el login es exitoso
+            // Guardamos el token en el Local Storage.
+            localStorage.setItem('token', data.token);
+
+            // Opcionalmente, puedes redirigir al usuario a la página de inicio u otra página.
             // window.location.href = '/home';
             
         } catch (error) {

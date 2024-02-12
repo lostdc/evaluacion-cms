@@ -10,6 +10,12 @@ export default defineConfig({
         }),
         react(), // Y luego usarlo aquí
     ],
+    server: {
+        proxy: {
+            '/api': 'http://localhost' // Asegúrate de reemplazar esto con la URL de tu proyecto de Laravel
+        }
+        
+    }
 });
 
 
