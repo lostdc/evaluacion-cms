@@ -10,9 +10,6 @@ const Login: React.FC = () => {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        // Eliminamos la llamada para obtener la cookie CSRF.
-        // La autenticación será manejada mediante el token en el Local Storage.
-
         try {
             // Realiza la solicitud de login.
             const response = await fetch('/api/login', {
@@ -28,15 +25,15 @@ const Login: React.FC = () => {
                 throw new Error('Error en la solicitud');
             }
 
-            // Asumimos que la respuesta incluye un token y posiblemente más datos del usuario.
             const data = await response.json();
             console.log(data);
 
             // Guardamos el token en el Local Storage.
             localStorage.setItem('token', data.token);
+            localStorage.setItem('permissions', JSON.stringify(data.permissions)); // Guarda los permisos como string JSON
 
-            // Opcionalmente, puedes redirigir al usuario a la página de inicio u otra página.
-            // window.location.href = '/home';
+        
+            window.location.href = '/home';
             
         } catch (error) {
             console.error('Error al iniciar sesión:', error);
@@ -52,7 +49,6 @@ const Login: React.FC = () => {
                         <Form.Group className="mb-3" controlId="formBasicEmail">
                             <Form.Control type="email" placeholder="Ingresa tu email" value={email} onChange={(e) => setEmail(e.target.value)} />
                         </Form.Group>
-
                         <Form.Group className="mb-3" controlId="formBasicPassword">
                             <InputGroup>
                                 <FormControl
@@ -66,7 +62,6 @@ const Login: React.FC = () => {
                                 </InputGroup.Text>
                             </InputGroup>
                         </Form.Group>
-
                         <Button variant="primary" type="submit" className="w-100">
                             Iniciar Sesión
                         </Button>

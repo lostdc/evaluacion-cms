@@ -47,35 +47,6 @@ class AuthController extends Controller
         }
     }
 
-    //public function login(Request $request)
-    //{
-    //    //try {
-    //        Log::info('Intento de inicio de sesión: ' . $this->resumenInfo(__LINE__, $request));
-    //    
-    //        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-    //            $user = Auth::user();
-    //    
-    //            // Inicio de sesión exitoso, Sanctum utilizará las cookies de sesión.
-    //            Log::info('Inicio de sesión exitoso para el usuario: ' . $user->email);
-    //    
-    //            // Opcional: Puedes querer generar un nuevo token CSRF después del inicio de sesión
-    //            $request->session()->regenerateToken();
-    //    
-    //            return response()->json([
-    //                'success' => true,
-    //                'message' => 'Inicio de sesión exitoso',
-    //                'user' => $user
-    //            ], 200);
-    //        } else {
-    //            Log::warning('Credenciales no válidas para el email: ' . $request->email);
-    //            return response()->json(['error' => 'Credenciales no válidas'], 401);
-    //        }
-    //    //} catch (\Exception $e) {
-    //    //    Log::error('Error al intentar iniciar sesión: ' . $this->resumenError($e));
-    //    //    return response()->json(['error' => 'Error al intentar iniciar sesión. Por favor, contacta al administrador.'], 500);
-    //    //}
-    //}
-
     public function login(Request $request)
     {
         $request->validate([
@@ -84,20 +55,23 @@ class AuthController extends Controller
         ]);
     
         if (Auth::attempt($request->only('email', 'password'))) {
-            // Crea un token personal de acceso para el usuario autenticado
             $tokenResult = Auth::user()->createToken('api-token');
             $token = $tokenResult->token;
             $token->save();
+            
+            $user = Auth::user();
+            $role = $user->roles()->first();
+            $permissions = $role ? $role->permissions()->pluck('name')->toArray() : [];
     
-            // Devuelve el token al cliente
-            return response()->json(['token' => $tokenResult->accessToken], 200);
+            return response()->json([
+                'token' => $tokenResult->accessToken,
+                'role' => $role ? $role->name : null,
+                'permissions' => $permissions
+            ], 200);
         }
     
         return response()->json(['message' => 'Unauthorized'], 401);
     }
-
-
-
 
     public function logout(Request $request)
     {
