@@ -95,3 +95,30 @@ Pruebas
 2. Ejecuta los tests unitarios:
 
 ./vendor/bin/sail php artisan test --testsuite=Feature
+
+
+
+## Accesos al ingresar a login en 
+
+ruta de acceso
+http://localhost/login 
+puede ingresar con los siguiente  usuarios cargados por seeder laravel
+
+todos tienen esta clave
+Abc*1234
+
+//rol administadores
+usuario1@example.com
+usuario2@example.com
+usuario3@example.com
+
+//editores
+usuario4@example.com
+usuario5@example.com
+usuario6@example.com
+
+//invitados
+usuario7@example.com
+usuario8@example.com
+usuario9@example.com
+usuario10@example.com

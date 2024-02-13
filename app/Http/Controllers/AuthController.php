@@ -18,7 +18,7 @@ class AuthController extends Controller
 
     public function register(CreateUserRequest $request)
     {
-        try {      
+      //  try {      
             //se quitan datos sensibles 
             Log::info('Proceso de registro de Usuario : '.$this->resumenInfo(__LINE__,$request, ['password', 'password_confirmation'] ));          
             // Los datos ya están validados y saneados gracias a CreateUserRequest
@@ -27,29 +27,30 @@ class AuthController extends Controller
                 'email'     => $request->email,
                 'password'  => Hash::make($request->password),
             ]);
-
+    
             // Asignar rol por defecto invitado (ID 3) al usuario
             $defaultRoleId = 3; // ID del rol por defecto
             $roleUser = new RoleUser();
             $roleUser->user_id = $user->id;
             $roleUser->role_id = $defaultRoleId;
             $roleUser->save();
-
+    
+    
             Log::info('Usuario registrado correctamente');
+            // Devolver los datos del usuario junto con el token de acceso
+            
             return $this->success("Usuario Creado",201);
-
-
-        } catch (\Exception $e) {
+    
+        //} catch (\Exception $e) {
             // Manejo de la excepción
             Log::error('Error al registrar usuario: ' . $this->resumenError($e));
             // Devolver una respuesta de error
-            return $this->error('Error al registrar usuario. Por favor, contacta al administrador',500);
-        }
+            return $this->error('Error al registrar usuario. Por favor, contacta al administrador', 500);
+       // }
     }
-
+    
     public function login(Request $request)
     {
-
         try {     
             $request->validate([
                 'email' => 'required|email',
@@ -58,29 +59,26 @@ class AuthController extends Controller
         
             if (Auth::attempt($request->only('email', 'password'))) {
                 $tokenResult = Auth::user()->createToken('api-token');
-                $token = $tokenResult->token;
-                $token->save();
+                $token = $tokenResult->plainTextToken; // Corregido aquí
                 
                 $user = Auth::user();
                 $role = $user->roles()->first();
                 $permissions = $role ? $role->permissions()->pluck('name')->toArray() : [];
         
                 return response()->json([
-                    'token' => $tokenResult->accessToken,
+                    'token' => $token, // Usar la variable corregida
                     'role' => $role ? $role->name : null,
                     'permissions' => $permissions
                 ], 200);
             }
             return response()->json(['message' => 'Unauthorized'], 401);
-
+    
         } catch (\Exception $e) {
             // Manejo de la excepción
             Log::error('Error interno no se ha logrado loguear: ' . $this->resumenError($e));
             // Devolver una respuesta de error
             return $this->error('Error interno al loguear',500);
         }
-    
-       
     }
 
 
