@@ -36,17 +36,6 @@ trait ApiResponserTrait
         return response()->json($jsonResponse, $code);
     }
 
-
-
-    /**
-     * Return an error JSON response.
-     *
-     * @param  string  $message
-     * @param  int  $code
-     * @param  array|string|null  $data
-     * @author Alain DIaz
-     * @return \Illuminate\Http\JsonResponse
-     */
     protected function error(string $message = null, int $code, $data = null)
     {
         return response()->json([
@@ -56,15 +45,6 @@ trait ApiResponserTrait
             'code' => $code
         ], $code);
     }
-
-    // protected function resumenError($e)
-    // {
-    //     return
-    //         PHP_EOL."Archivo    : ".$e->getFile().PHP_EOL.
-    //                 "Metodo     : ".debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2)[1]["function"].PHP_EOL.
-    //                 "Line       : ".$e->getLine().PHP_EOL.
-    //                 "Detalle    : ".$e.PHP_EOL;
-    // }
 
     protected function resumenError($e)
     {
@@ -93,11 +73,6 @@ trait ApiResponserTrait
     
         return $errorSummary;
     }
-
-
-
-
-
 
     protected function resumenInfo($linea, Request $request = null, $except = null)
     {

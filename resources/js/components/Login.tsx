@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Container, Form, Button, Card, InputGroup, FormControl } from 'react-bootstrap';
 import { EyeFill, EyeSlashFill } from 'react-bootstrap-icons';
 
@@ -6,6 +7,20 @@ const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // Verifica si ya existe un token en el almacenamiento local
+        const token = localStorage.getItem('token');
+        if (token) {
+            // Si existe un token, redirige al usuario a la página principal
+            navigate('/home');
+        }
+        // Dependencias del efecto
+    }, [navigate]);
+
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -32,8 +47,7 @@ const Login: React.FC = () => {
             localStorage.setItem('token', data.token);
             localStorage.setItem('permissions', JSON.stringify(data.permissions)); // Guarda los permisos como string JSON
 
-        
-            window.location.href = '/home';
+            navigate('/home');
             
         } catch (error) {
             console.error('Error al iniciar sesión:', error);

@@ -43,42 +43,76 @@ class AuthController extends Controller
             // Manejo de la excepción
             Log::error('Error al registrar usuario: ' . $this->resumenError($e));
             // Devolver una respuesta de error
-            return response()->json(['error' => 'Error al registrar usuario. Por favor, contacta al administradore.'], 500);
+            return $this->error('Error al registrar usuario. Por favor, contacta al administrador',500);
         }
     }
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-    
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $tokenResult = Auth::user()->createToken('api-token');
-            $token = $tokenResult->token;
-            $token->save();
-            
-            $user = Auth::user();
-            $role = $user->roles()->first();
-            $permissions = $role ? $role->permissions()->pluck('name')->toArray() : [];
-    
-            return response()->json([
-                'token' => $tokenResult->accessToken,
-                'role' => $role ? $role->name : null,
-                'permissions' => $permissions
-            ], 200);
+
+        try {     
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+            ]);
+        
+            if (Auth::attempt($request->only('email', 'password'))) {
+                $tokenResult = Auth::user()->createToken('api-token');
+                $token = $tokenResult->token;
+                $token->save();
+                
+                $user = Auth::user();
+                $role = $user->roles()->first();
+                $permissions = $role ? $role->permissions()->pluck('name')->toArray() : [];
+        
+                return response()->json([
+                    'token' => $tokenResult->accessToken,
+                    'role' => $role ? $role->name : null,
+                    'permissions' => $permissions
+                ], 200);
+            }
+            return response()->json(['message' => 'Unauthorized'], 401);
+
+        } catch (\Exception $e) {
+            // Manejo de la excepción
+            Log::error('Error interno no se ha logrado loguear: ' . $this->resumenError($e));
+            // Devolver una respuesta de error
+            return $this->error('Error interno al loguear',500);
         }
     
-        return response()->json(['message' => 'Unauthorized'], 401);
+       
     }
+
+
+    
 
     public function logout(Request $request)
     {
-        // Lógica de logout...
-        $cookie = Cookie::forget('token');
-        return response()->json(['message' => 'Sesión cerrada correctamente'])->withCookie($cookie);
+        try {
+            // Verifica si hay un usuario autenticado antes de intentar revocar el token
+            if ($request->user()) {
+                $token = $request->user()->token();
+                if($token) {
+                    $token->revoke();
+                    Log::info('Token revoked successfully.');
+                } else {
+                    Log::warning('No token found for the user.');
+                }
+            } else {
+                Log::warning('No authenticated user found.');
+            }
+            
+            return response()->json(['message' => 'Sesión cerrada correctamente'], 200);
+        } catch (\Exception $e) {
+            // Handle the exception
+            Log::error('Error al cerrar sesión: ' . $e->getMessage());
+            return response()->json(['message' => 'Error al cerrar sesión'], 500);
+        }
     }
+    
+
+
 
 
 }
+

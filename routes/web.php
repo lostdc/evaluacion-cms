@@ -18,4 +18,4 @@ Route::get('/{any}', function () {
     return view('app');
 })->where('any', '.*');
 
-//Route::view('/login', 'login')->name('login');
+Route::view('/login', 'login')->name('login');
