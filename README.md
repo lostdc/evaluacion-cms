@@ -85,6 +85,13 @@ npm install
 sudo systemctl stop apache2
 sudo systemctl disable apache2
 
-## Pruebas
 
-[Detalles sobre la implementación de pruebas unitarias y de integración, incluyendo cómo ejecutarlas y la base de datos de prueba `testing`.]
+Pruebas
+
+1. Ejecuta las migraciones y seeders para la base de datos de testing:
+
+./vendor/bin/sail artisan migrate --seed --env=testing
+
+2. Ejecuta los tests unitarios:
+
+./vendor/bin/sail php artisan test --testsuite=Feature
