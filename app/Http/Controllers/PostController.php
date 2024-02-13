@@ -5,13 +5,14 @@ use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Traits\ApiResponserTrait;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 
 class PostController extends Controller
 {
     use ApiResponserTrait;
     public function getAllPosts(Request $request)
     {
-
         try{
             // Obtener todos los posts con su categoría, autor y lista de tags asociados
             $posts = Post::with('category', 'user', 'tags');
@@ -43,6 +44,51 @@ class PostController extends Controller
             // Devolver una respuesta de error
             return $this->error('Error interno al obtener los post',500,[]);
         }
-     
+    }
+
+    public function store(StorePostRequest $request)
+    {
+        try {
+            $post = Post::create($request->validated());
+            return $this->success('Post creado con éxito', 201, $post);
+        } catch (\Exception $e) {
+            Log::error('Error al crear el Post: ' . $e->getMessage());
+            return $this->error('Error interno al crear el post', 500, []);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            $post = Post::with('category', 'user', 'tags')->findOrFail($id);
+            return $this->success('Post obtenido con éxito', 200, $post);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener el Post: ' . $e->getMessage());
+            return $this->error('Post no encontrado', 404, []);
+        }
+    }
+
+    public function update(UpdatePostRequest $request, $id)
+    {
+        try {
+            $post = Post::findOrFail($id);
+            $post->update($request->validated());
+            return $this->success('Post actualizado con éxito', 200, $post);
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar el Post: ' . $e->getMessage());
+            return $this->error('Error interno al actualizar el post', 500, []);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $post = Post::findOrFail($id);
+            $post->delete();
+            return $this->success('Post eliminado con éxito', 200, []);
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar el Post: ' . $e->getMessage());
+            return $this->error('Error interno al eliminar el post', 500, []);
+        }
     }
 }

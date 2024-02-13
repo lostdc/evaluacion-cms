@@ -45,7 +45,8 @@ const Login: React.FC = () => {
 
             // Guardamos el token en el Local Storage.
             localStorage.setItem('token', data.token);
-            localStorage.setItem('permissions', JSON.stringify(data.permissions)); // Guarda los permisos como string JSON
+            localStorage.setItem('role', JSON.stringify(data.role));
+            localStorage.setItem('permissions', JSON.stringify(data.permissions)); 
 
             navigate('/home');
             

@@ -8,6 +8,8 @@ const BaseLayout: React.FC<{ children: React.ReactNode, searchFilters?: React.Re
 
     const handleLogout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('permissions');
+        localStorage.removeItem('role');
         navigate('/login');
     };
 
