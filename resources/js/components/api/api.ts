@@ -1,5 +1,5 @@
 // En el archivo js/helpers/utils.ts
-import { ApiResponse, Category, Tag, JsonResponseMessage } from '../types/types';
+import { ApiResponse, Category, Tag, JsonResponseMessage, Post } from '../types/types';
 
 type FetchOptions = RequestInit & {
   body?: Record<string, unknown>;
@@ -82,8 +82,6 @@ export const deleteCategory = async (categoryId: number) => {
 
 
 
-
-
 export const loadTags = async () => {
   const response = await fetchWithAuth('/api/tags');
   const data: ApiResponse<Tag[]> = await response.json();
@@ -96,18 +94,37 @@ export const loadTags = async () => {
 };
 
 
-const loadPost = async (id : number ) => {
+
+
+/* FUNCTIONS POSTS */
+export const fetchPostDetails = async (postId: string): Promise<Post | null> => {
   try {
-    const response = await fetch(`/api/post/${id}`);
-    const data: ApiResponse<Tags[]> = await response.json();
+    const response = await fetchWithAuth(`/api/post/${postId}`);
     if (response.ok) {
-      return data.data;
-    } else {
-      console.error('Error cargando las categorías:', data.message);
-      return [];
+      const jsonResponse = await response.json();
+      return jsonResponse.data;
     }
+    console.error('Error fetching post details');
+    return null;
   } catch (error) {
-    console.error('Error fetching post:', error);
+    console.error('Error fetching post details:', error);
+    return null;
   }
 };
 
+export const savePostDetails = async (postId: string, payload: { content: string, category_id: string, tags: Tag[] }): Promise<JsonResponseMessage> => {
+  try {
+    const response = await fetchWithAuth(`/api/post/${postId}`, {
+      method: 'PUT', // o 'POST', dependiendo de si es una actualización o creación
+      body: payload,
+    });
+    const jsonResponse: JsonResponseMessage = await response.json();
+    if (!response.ok) {
+      throw new Error(jsonResponse.message || 'Error saving post details');
+    }
+    return jsonResponse;
+  } catch (error) {
+    console.error('Error saving post details:', error);
+    throw error; // O manejar el error de manera que se prefiera
+  }
+};

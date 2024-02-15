@@ -24,18 +24,25 @@ export type Tag = {
   deleted_at?: string | null;
 };
 
+export type User = {
+  id: number;
+  name: string;
+}
 
 export type Post = {
   id: number;
+  category_id: number;
+  author_id: number;
   title: string;
-  category: {
-      name: string;
-  };
-  user: {
-      name: string;
-  };
+  content: string;
+  category: Category;
+  user: User;
   tags: Tag[];
+  imageUrl?: string;
 }
+
+
+
 
 export type JsonResponseMessage = {
   status: string,

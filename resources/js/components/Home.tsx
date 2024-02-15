@@ -6,8 +6,6 @@ import BaseLayout from './BaseLayout'; // Asegúrate de que la ruta de importaci
 import { Post, Category } from './types/types'; 
 
 
-
-
 const Home: React.FC = () => {
     const categories: Category[] = [
         { id: 1, name: "Categoria 1" },
@@ -65,40 +63,44 @@ const Home: React.FC = () => {
 
     return (
         <BaseLayout searchFilters={searchFilters}>
-            <>
-                {userHasPermission('create_posts') && (
-                    <Row className="mb-4">
-                        <Col>
-                            <Button variant="success" className="w-100" onClick={() => navigate('/create-post')}>+ Nuevo Post</Button>
-                        </Col>
-                    </Row>
-                )}
-                <Row>
-                    {posts.map(post => (
-                        <Col md={4} key={post.id} className="mb-4">
-                            <Card 
-                            style={{ width: '100%', cursor: 'pointer' }} 
-                            onClick={() => navigate(`/post/${post.id}`)}>
-                                <Card.Img variant="top" src={"https://static.vecteezy.com/system/resources/previews/005/723/771/large_2x/photo-album-icon-image-symbol-or-no-image-flat-design-on-a-white-background-vector.jpg"} />
-                                <Card.Body>
-                                    <Card.Title>{post.title}</Card.Title>
-                                    <Card.Text as="div">
-
-                                    <div>Categoría: {post.category?.name ?? 'No definido'}</div>
-                                        <div>Autor: {post.user?.name ?? 'No definido'}</div>
-                                        <div>
-                                            {post.tags.map(tag => (
-                                            <Badge key={tag.id} bg="primary" className="mr-2 mb-2">{tag?.name ?? 'No definido'}</Badge>
-                                            ))}
-                                        </div>
-                                        </Card.Text>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
-            </>
+        <>
+            {userHasPermission('create_posts') && (
+            <Row className="mb-4 justify-content-center">
+                <Col xs={12} md={8} lg={6}>
+                <Button variant="success" className="w-100 mb-3" onClick={() => navigate('/create-post')}>
+                    + Nuevo Post
+                </Button>
+                </Col>
+            </Row>
+            )}
+            <Row className="justify-content-center">
+            {posts.map(post => (
+                <Col key={post.id} className="mb-4 d-flex align-items-stretch" style={{ maxWidth: '300px' }}>
+                <Card 
+                    className="w-100 shadow-sm" // Asegura que la tarjeta ocupe el ancho disponible pero no más de 300px
+                    onClick={() => navigate(`/post/${post.id}`)}
+                    style={{ cursor: 'pointer', margin: '0 auto' }} // Centra la tarjeta en la columna
+                >
+                    <Card.Img variant="top" src={"https://static.vecteezy.com/system/resources/previews/005/723/771/large_2x/photo-album-icon-image-symbol-or-no-image-flat-design-on-a-white-background-vector.jpg"} />
+                    <Card.Body>
+                    <Card.Title>{post.title}</Card.Title>
+                    <Card.Text as="div">
+                        <div>Categoría: {post.category?.name ?? 'No definido'}</div>
+                        <div>Autor: {post.user?.name ?? 'No definido'}</div>
+                        <div>
+                        {post.tags.map(tag => (
+                            <Badge key={tag.id} bg="primary" className="mr-2 mb-2">{tag?.name ?? 'No definido'}</Badge>
+                        ))}
+                        </div>
+                    </Card.Text>
+                    </Card.Body>
+                </Card>
+                </Col>
+            ))}
+            </Row>
+        </>
         </BaseLayout>
+
     );
 };
 
