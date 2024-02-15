@@ -6,6 +6,7 @@ import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { fetchWithAuth, createCategories, updateCategories, deleteCategory, loadCategories } from './api/api';
 import { Category } from './types/types';
 import NotificationService from '../helpers/notificationService';
+import { userHasPermission } from '../helpers/permissionHelpers';
 
 const Categories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -139,7 +140,7 @@ const Categories = () => {
                     <Form.Label>Descripción</Form.Label>
                     <Form.Control as="textarea" rows={3} value={description} onChange={e => setDescription(e.target.value)} />
                   </Form.Group>
-                  <Button variant="primary" type="submit">{editing ? 'Modificar' : 'Guardar'}</Button>
+                  {editing ? userHasPermission("update_categories") && <Button variant="primary" type="submit">Modificar</Button> :  userHasPermission("update_categories") && <Button variant="primary" type="submit">Guardar</Button>}
                 </Form>
               </Card.Body>
             </Card>
@@ -159,8 +160,8 @@ const Categories = () => {
                     <td>{category.name}</td>
                     <td>{category.description}</td>
                     <td>
-                      <Button variant="info" onClick={() => handleEdit(category.id)}><FontAwesomeIcon icon={faEdit} /></Button>{' '}
-                      <Button variant="danger" onClick={() => handleDeleteClick(category.id)}><FontAwesomeIcon icon={faTrash} /></Button>
+                      {userHasPermission("update_categories") && <Button variant="info" onClick={() => handleEdit(category.id)}><FontAwesomeIcon icon={faEdit} /></Button>}{' '} 
+                      {userHasPermission("delete_categories") && <Button variant="danger" onClick={() => handleDeleteClick(category.id)}><FontAwesomeIcon icon={faTrash} /></Button>}
                     </td>
                   </tr>
                 ))}

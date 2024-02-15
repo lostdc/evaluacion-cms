@@ -20,25 +20,30 @@ use App\Http\Controllers\TagController;
 */
 
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout']);
-
-//post
-Route::get('/posts', [PostController::class, 'getAllPosts']);
-//categorias
-Route::get('/categories', [CategoryController::class, 'index']);
-Route::get('/categories/{id}', [CategoryController::class, 'show']);
-//tags
-Route::get('/tags', [TagController::class, 'index']);
-Route::get('/tags/{id}', [TagController::class, 'show']);
-
-Route::get('/post/{id}', [App\Http\Controllers\PostController::class, 'show']);
 
 
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
+
+Route::middleware('throttle:60,1')->group(function () {
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+    //post
+    Route::get('/post/{id}', [PostController::class, 'show']);
+    Route::get('/posts', [PostController::class, 'getAllPosts']);
+    //categorias
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/{id}', [CategoryController::class, 'show']);
+    //tags
+    Route::get('/tags', [TagController::class, 'index']);
+    Route::get('/tags/{id}', [TagController::class, 'show']);
+});
 
 
-Route::middleware(['auth:sanctum'])->group(function () {
+
+Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
     //categorias
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{id}', [CategoryController::class, 'update']);
@@ -47,5 +52,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/tags', [TagController::class, 'store']);
     Route::put('/tags/{id}', [TagController::class, 'update']);
     Route::delete('/tags/{id}', [TagController::class, 'destroy']);
+
+
 });
 

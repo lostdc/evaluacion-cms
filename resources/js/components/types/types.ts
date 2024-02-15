@@ -48,6 +48,6 @@ export type JsonResponseMessage = {
   status: string,
   message: string,
   data?: [] | null,
-  code: 400
+  code: number
 }
 

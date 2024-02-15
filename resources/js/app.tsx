@@ -54,8 +54,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Home />} />
         <Route path="/" element={<Navigate replace to="/login" />} />
-        <Route path="/Category" element={<Category />} />
-
+        <Route path="/Category" element={isAuthenticated ? <Category /> : <Navigate to="/home" />} />
         {/* Ruta para PostDetail */}
         <Route path="/post/:id" element={<BaseLayout><PostDetail /></BaseLayout>} />
 

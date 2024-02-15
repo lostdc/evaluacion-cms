@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Container, Form, Button, Card, InputGroup, FormControl } from 'react-bootstrap';
 import { EyeFill, EyeSlashFill } from 'react-bootstrap-icons';
 
@@ -8,19 +7,15 @@ const Login: React.FC = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-
-    const navigate = useNavigate();
-
     useEffect(() => {
         // Verifica si ya existe un token en el almacenamiento local
         const token = localStorage.getItem('token');
         if (token) {
             // Si existe un token, redirige al usuario a la página principal
-            navigate('/home');
+            window.location.href = '/home';
         }
-        // Dependencias del efecto
-    }, [navigate]);
-
+        // No hay dependencias en este efecto, por lo que se deja el array vacío
+    }, []); // Array de dependencias vacío ya que no dependemos de ninguna variable o estado
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -41,15 +36,13 @@ const Login: React.FC = () => {
             }
 
             const data = await response.json();
-            console.log(data);
-
-            // Guardamos el token en el Local Storage.
+            // Guardamos el token y otros datos relevantes en el Local Storage.
             localStorage.setItem('token', data.token);
             localStorage.setItem('role', data.role);
-            localStorage.setItem('permissions', JSON.stringify(data.permissions)); 
-            localStorage.setItem('user', JSON.stringify(data.user)); 
-
-            navigate('/home');
+            localStorage.setItem('permissions', JSON.stringify(data.permissions));
+            localStorage.setItem('user', JSON.stringify(data.user));
+            // Redirige al usuario a la página principal
+            window.location.href = '/home';
             
         } catch (error) {
             console.error('Error al iniciar sesión:', error);

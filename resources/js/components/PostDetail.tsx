@@ -25,6 +25,7 @@ const PostDetail: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'danger'; message: string } | null>(null);
+  const [editableTitle, setEditableTitle] = useState('');
 
   const animatedComponents = makeAnimated();
 
@@ -45,6 +46,7 @@ const PostDetail: React.FC = () => {
     const isAdmin = userHasRole('administrador');
     setCanEdit(isAuthor || (isAdmin && userHasPermission('update_posts')));
     if (post) {
+      setEditableTitle(post.title);
       setSelectedCategory(post.category_id.toString());
       setSelectedTags(post.tags.map(tag => ({ value: tag.id, label: tag.name })));
       setPreviewUrl(post.imageUrl || '');
@@ -66,6 +68,10 @@ const PostDetail: React.FC = () => {
     } catch (error) {
       console.error('Error fetching post:', error);
     }
+  };
+
+  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEditableTitle(event.target.value);
   };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,8 +118,8 @@ const PostDetail: React.FC = () => {
       formData.append('image', image, image.name);
     }
 
+
     try {
-      debugger
       const response = await fetch(`/api/posts/${id}`, {
         method: 'PUT',
         body: formData, // Aquí se envía la imagen junto con los otros datos del formulario
@@ -135,12 +141,30 @@ const PostDetail: React.FC = () => {
     setUploadingImage(false);
   };
 
+  const createMarkup = (htmlContent: string) => {
+    return {
+      __html: DOMPurify.sanitize(htmlContent),
+    };
+  };
+
   if (!post) return <div>Cargando...</div>;
 
   return (
     <Container fluid="md">
       <div style={{ width: '800px', maxWidth: '100%', margin: 'auto', padding: '1rem', backgroundColor: 'white', borderRadius: '0.25rem', border: '1px solid #ddd' }}>
-        <h1>{post.title}</h1>
+      <div className="mb-2">
+        {canEdit ? (
+          <Form.Control
+            size="lg" // Ajusta el tamaño según sea necesario
+            type="text"
+            value={editableTitle}
+            onChange={handleTitleChange}
+            style={{ fontSize: '1.5rem' }} // Asegúrate de ajustar el tamaño de la fuente para que coincida con el de <h1>
+          />
+        ) : (
+          <h1>{post.title}</h1>
+        )}
+      </div>
         {/*<Image className='mb-2' width={'800px'} src={post.imageUrl || 'https://via.placeholder.com/800'} fluid />*/}
         <Image 
           className='mb-2'   
@@ -162,15 +186,29 @@ const PostDetail: React.FC = () => {
         ) : (
           <div className='mb-2'>Categoría: {post.category.name}</div>
         )}
-        <Select
-          components={animatedComponents}
-          isMulti
-          options={tags}
-          value={selectedTags}
-          onChange={handleTagsChange}
-          classNamePrefix="select"
-          placeholder="Selecciona tags..."
-        />
+        <div className="mb-3">
+          {canEdit ? (
+            // Sección actual para seleccionar tags cuando el usuario puede editar
+            <Select
+              components={animatedComponents}
+              isMulti
+              options={tags}
+              value={selectedTags}
+              onChange={handleTagsChange}
+              classNamePrefix="select"
+              placeholder="Selecciona tags..."
+            />
+          ) : (
+            // Vista de solo lectura para los tags, mostrados como Badges
+            <div>
+              {post.tags.map((tag) => (
+                <Badge bg="primary" key={tag.id} className="me-1">
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="mb-3">
           {canEdit ? (
             <Editor
@@ -184,7 +222,8 @@ const PostDetail: React.FC = () => {
               wrapperStyle={{ backgroundColor: 'white', padding: '1rem', borderRadius: '0.25rem', maxWidth: '800px', margin: 'auto' }}
               editorStyle={{ height: '200px', padding: '0.5rem', border: '1px solid #F1F1F1', borderRadius: '0.25rem' }}
             />
-          ) : (
+          ) : 
+          (
             <div style={{ backgroundColor: '#ffffff', padding: '1rem', borderRadius: '0.25rem', border: '1px solid #ddd' }} dangerouslySetInnerHTML={createMarkup(draftToHtml(convertToRaw(editorState.getCurrentContent())))} />
           )}
         </div>

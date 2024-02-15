@@ -5,34 +5,31 @@ type FetchOptions = RequestInit & {
   body?: Record<string, unknown>;
 };
 
-export const fetchWithAuth = (url: string, options: FetchOptions = {}, extraParams?: object): Promise<Response> => {
+export const fetchWithAuth = (url: string, options: FetchOptions = {}, useFormData: boolean = false): Promise<Response> => {
   const token = localStorage.getItem('token');
 
   // Configuración inicial de la petición Fetch.
-  const config: RequestInit = {
-    ...options,
-    headers: {
-      ...options.headers,
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+  let headers = {
+    'Authorization': `Bearer ${token}`,
   };
 
-  let bodyObject = {};
-  // Si el cuerpo de la petición es un objeto, prepáralo para incluirlo en la configuración
-  if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
-    bodyObject = options.body;
+  // Configurar headers y body para peticiones con FormData de manera diferente
+  if (!useFormData) {
+    headers['Content-Type'] = 'application/json';
   }
 
-  // Mezcla los parámetros adicionales si se proporcionan
-  if (extraParams) {
-    bodyObject = { ...bodyObject, ...extraParams };
+  // Si el cuerpo de la petición no es FormData, se convierte a JSON.
+  let body = options.body;
+  if (!useFormData && options.body && typeof options.body === 'object') {
+    body = JSON.stringify(options.body);
   }
 
-  // Convierte el objeto del cuerpo a una cadena JSON
-  if (Object.keys(bodyObject).length > 0) {
-    config.body = JSON.stringify(bodyObject);
-  }
+  // Preparar la configuración final de la petición
+  const config: RequestInit = {
+    ...options,
+    headers,
+    body: useFormData ? options.body : body,
+  };
 
   // Realiza la petición Fetch y retorna el objeto Response.
   return fetch(url, config);
@@ -94,23 +91,28 @@ export const loadTags = async () => {
 };
 
 
-
-
-/* FUNCTIONS POSTS */
-export const fetchPostDetails = async (postId: string): Promise<Post | null> => {
+// Actualizar detalles de un post
+export const updatePostDetails = async (postId: string, formData: FormData): Promise<JsonResponseMessage> => {
   try {
-    const response = await fetchWithAuth(`/api/post/${postId}`);
-    if (response.ok) {
-      const jsonResponse = await response.json();
-      return jsonResponse.data;
+    const response = await fetchWithAuth(`/api/posts/${postId}`, {
+      method: 'PUT',
+      body: formData,
+      headers: {}, // Se sobreescribe el Content-Type predeterminado para permitir FormData
+    }, true); // El tercer parámetro indica si se está utilizando FormData
+
+    const jsonResponse: JsonResponseMessage = await response.json();
+    if (!response.ok) {
+      throw new Error(jsonResponse.message || 'Error actualizando los detalles del post');
     }
-    console.error('Error fetching post details');
-    return null;
+    return jsonResponse;
   } catch (error) {
-    console.error('Error fetching post details:', error);
-    return null;
+    console.error('Error actualizando los detalles del post:', error);
+    throw error; // O manejar el error de manera que se prefiera
   }
 };
+
+
+
 
 export const savePostDetails = async (postId: string, payload: { content: string, category_id: string, tags: Tag[] }): Promise<JsonResponseMessage> => {
   try {
