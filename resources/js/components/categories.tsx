@@ -1,27 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Form, Table, Container, Row, Col } from 'react-bootstrap';
+import { Card, Button, Form, Table, Container, Row, Col,Alert, Modal } from 'react-bootstrap';
 import BaseLayout from './BaseLayout'; 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { fetchWithAuth } from '../helpers/utils';
-import { Alert } from 'react-bootstrap';
-// Definir un tipo para las categorías
-type Category = {
-  id: number;
-  name: string;
-  description: string;
-  created_at?: string;
-  updated_at?: string;
-  deleted_at?: string | null;
-};
+import { fetchWithAuth, createCategories, updateCategories, deleteCategory, loadCategories} from './api/api';
+import { Category,ApiResponse } from './types/types';
+import { checkApiResponse } from '../helpers/apiHelpers';
+import NotificationService from '../helpers/notificationService';
 
 // Definir un tipo para la respuesta del servidor
-type ApiResponse = {
-  status: string;
-  message: string;
-  data: Category[];
-};
-
 const Categories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState<string>('');
@@ -29,27 +16,23 @@ const Categories = () => {
   const [editing, setEditing] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'danger'; message: string } | null>(null);
-
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [deleteCategoryId, setDeleteCategoryId] = useState<number | null>(null);
 
   useEffect(() => {
-    loadCategories();
+    fetchCategories();
   }, []);
 
-  const loadCategories = async () => {
-    const response = await fetchWithAuth('/api/categories');
-    const data: ApiResponse = await response.json();
-    if (response.ok) {
-      setCategories(data.data);
-    } else {
-      console.error('Error cargando las categorías:', data.message);
+  const fetchCategories = async () => {
+    try {
+      const loadedCategories = await loadCategories();
+      setCategories(loadedCategories);
+    } catch (error) {
+      if (error instanceof Error) {
+        // Utiliza NotificationService para mostrar el mensaje de error
+        NotificationService.showError(error.message);
+      }
     }
-  };
-
-  const handleApiResponse = (response: ApiResponse) => {
-    setAlert({
-      type: response.status === "Success" ? 'success' : 'danger',
-      message: response.message,
-    });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -58,23 +41,21 @@ const Categories = () => {
 
     let response;
     if (editing) {
-      response = await fetchWithAuth(`/api/categories/${editingId}`, {
-        method: 'PUT',
-        body: payload,
-      });
+      if (editingId !== null) {
+        response = await updateCategories(editingId, payload);
+      } else {
+        console.error('Error: editingId es nulo.');
+        return;
+      }
     } else {
-      response = await fetchWithAuth('/api/categories', {
-        method: 'POST',
-        body: payload,
-      });
-    }
+      response = await createCategories(payload);
+  }
 
 
     if (response.ok) {
 
       const data = await response.json(); // Se espera que la API siempre responda con un JSON válido.
       setAlert({ type: 'success', message: data.message });
-
       loadCategories();
       setName('');
       setDescription('');
@@ -95,21 +76,58 @@ const Categories = () => {
     }
   };
 
-  const handleDelete = async (categoryId: number) => {
-    const response = await fetchWithAuth(`/api/categories/${categoryId}`, {
-      method: 'DELETE',
-    });
-    if (response.ok) {
-      const data = await response.json(); // Se espera que la API siempre responda con un JSON válido.
-      setAlert({ type: 'danger', message: data.message });
-      loadCategories();
-    } else {
-      console.error('Error al eliminar la categoría');
-    }
+  // Función para mostrar el modal de confirmación
+  const handleDeleteClick = (categoryId: number) => {
+    setShowDeleteConfirmation(true);
+    setDeleteCategoryId(categoryId);
   };
+  
+  // Función para manejar la cancelación de la eliminación
+  const handleCancelDelete = () => {
+    setShowDeleteConfirmation(false);
+    setDeleteCategoryId(null);
+  };
+
+  // Función modificada para manejar la eliminación
+  const handleDelete = async () => {
+    if (deleteCategoryId !== null) {
+      try {
+        const response = await deleteCategory(deleteCategoryId);
+        const data: ApiResponse<any> = await response.json(); // Asegúrate de que la respuesta se haya convertido a JSON
+        if (!response.ok || data.status === "Error") {
+          throw new Error(data.message || "Error al eliminar la categoría.");
+        }
+  
+        setAlert({ type: 'danger', message: data.message });
+        loadCategories();
+      } catch (error) {
+        if (error instanceof Error) {
+          NotificationService.showError(error.message);
+        }
+      }
+    }
+    setShowDeleteConfirmation(false);
+    setDeleteCategoryId(null);
+  };
+  
+    
 
   return (
     <BaseLayout>
+      <Modal show={showDeleteConfirmation} onHide={handleCancelDelete}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>¿Estás seguro de que deseas eliminar esta categoría?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCancelDelete}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleDelete}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <Container>
         {alert && (
             <Alert variant={alert.type} onClose={() => setAlert(null)} dismissible>
@@ -151,7 +169,7 @@ const Categories = () => {
                     <td>{category.description}</td>
                     <td>
                       <Button variant="info" onClick={() => handleEdit(category.id)}><FontAwesomeIcon icon={faEdit} /></Button>{' '}
-                      <Button variant="danger" onClick={() => handleDelete(category.id)}><FontAwesomeIcon icon={faTrash} /></Button>
+                      <Button variant="danger" onClick={() => handleDeleteClick(category.id)}><FontAwesomeIcon icon={faTrash} /></Button>
                     </td>
                   </tr>
                 ))}

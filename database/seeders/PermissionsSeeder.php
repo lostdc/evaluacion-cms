@@ -31,6 +31,12 @@ class PermissionsSeeder extends Seeder
             ['name' => 'read_comments', 'description' => 'Read comments'],
             ['name' => 'update_comments', 'description' => 'Update existing comments'],
             ['name' => 'delete_comments', 'description' => 'Delete comments'],
+            // Permisos para comentarios
+            ['name' => 'show_view_categories', 'description' => 'Show view categories'],
+            ['name' => 'show_view_tags', 'description' => 'show view tags'],
+     
+            
+           
         ];
 
         foreach ($permissions as $permission) {

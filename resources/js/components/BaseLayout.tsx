@@ -2,6 +2,7 @@
 import React from 'react';
 import { Container, Navbar, Dropdown } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { userHasPermission } from '../helpers/permissionHelpers'; // Importa la función para verificar permisos
 
 const BaseLayout: React.FC<{ children: React.ReactNode, searchFilters?: React.ReactNode }> = ({ children, searchFilters }) => {
     const navigate = useNavigate();
@@ -10,6 +11,7 @@ const BaseLayout: React.FC<{ children: React.ReactNode, searchFilters?: React.Re
         localStorage.removeItem('token');
         localStorage.removeItem('permissions');
         localStorage.removeItem('role');
+        localStorage.removeItem('user');
         navigate('/login');
     };
 
@@ -27,8 +29,8 @@ const BaseLayout: React.FC<{ children: React.ReactNode, searchFilters?: React.Re
                             </Dropdown.Toggle>
                             <Dropdown.Menu>
                                 <Dropdown.Item onClick={() => navigate('/home')}>Home</Dropdown.Item>
-                                <Dropdown.Item onClick={() => navigate('/category')}>Categorías</Dropdown.Item>
-                                <Dropdown.Item onClick={() => navigate('/tags')}>Tags</Dropdown.Item>
+                                {userHasPermission("show_view_categories") && <Dropdown.Item onClick={() => navigate('/category')}>Categorías</Dropdown.Item>}
+                                {userHasPermission("show_view_categories") && <Dropdown.Item onClick={() => navigate('/tags')}>Tags</Dropdown.Item>}
                                 <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>

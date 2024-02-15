@@ -5,12 +5,9 @@ export const userHasPermission = (permission: string): boolean => {
   return permissions.includes(permission);
 };
 
-
 export const userHasRole = (role: string): boolean => {
-  const rolesString = localStorage.getItem('role');
-  const roles = rolesString ? JSON.parse(rolesString) : [];
-  return role.includes(role);
+  const roleString = localStorage.getItem('role');
+  return roleString === role;
 };
-
 
 

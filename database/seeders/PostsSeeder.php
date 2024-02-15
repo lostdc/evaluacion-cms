@@ -18,14 +18,15 @@ class PostsSeeder extends Seeder
             'Los Destinos de Viaje Más Populares de 2024',
             'Consejos para una Vida Saludable',
             'Recetas Fáciles y Rápidas para el Día a Día',
-            'La Influencia del Arte en la Sociedad Moderna',
         ];
 
-        // Crear 6 posts
+        // Crear 5 posts
+        //por defecto los 2 primeros id seran administradores y los otros 3 editores asi que cada uno tendra su publicacion
+        $author_id = 1;
         foreach ($titles as $index => $title) {
             $post = Post::create([
                 'category_id' => rand(1, 10), // Categoría aleatoria basada en las categorías disponibles
-                'author_id' => 1, // Asumiendo que hay al menos un usuario (autor) con id 1
+                'author_id' => $author_id,
                 'title' => $title,
                 'content' => "Contenido de ejemplo para el post titulado '{$title}'.",
             ]);
@@ -33,6 +34,7 @@ class PostsSeeder extends Seeder
             // Asignar entre 0 y 3 etiquetas de forma aleatoria
             $tagsIds = Tag::inRandomOrder()->take(rand(0, 3))->pluck('id');
             $post->tags()->attach($tagsIds);
+            $author_id ++;
         }
     }
 }

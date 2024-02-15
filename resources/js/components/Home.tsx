@@ -3,23 +3,10 @@ import { Container, Navbar, Button, FormControl, ListGroup, Row, Col, Card, Form
 import { userHasPermission } from '../helpers/permissionHelpers';
 import { useNavigate } from 'react-router-dom';
 import BaseLayout from './BaseLayout'; // Asegúrate de que la ruta de importación sea correcta
+import { Post, Category } from './types/types'; 
 
-interface Category {
-  id: number;
-  name: string;
-}
 
-interface Post {
-    id: number;
-    title: string;
-    category: {
-        name: string;
-    };
-    user: {
-        name: string;
-    };
-    tags: Array<{ name: string }>;
-}
+
 
 const Home: React.FC = () => {
     const categories: Category[] = [
@@ -76,7 +63,6 @@ const Home: React.FC = () => {
     );
 
 
-
     return (
         <BaseLayout searchFilters={searchFilters}>
             <>
@@ -87,7 +73,6 @@ const Home: React.FC = () => {
                         </Col>
                     </Row>
                 )}
-
                 <Row>
                     {posts.map(post => (
                         <Col md={4} key={post.id} className="mb-4">
@@ -97,13 +82,16 @@ const Home: React.FC = () => {
                                 <Card.Img variant="top" src={"https://static.vecteezy.com/system/resources/previews/005/723/771/large_2x/photo-album-icon-image-symbol-or-no-image-flat-design-on-a-white-background-vector.jpg"} />
                                 <Card.Body>
                                     <Card.Title>{post.title}</Card.Title>
-                                    <Card.Text>
-                                        Categoría: {post.category.name}<br />
-                                        Autor: {post.user.name}
+                                    <Card.Text as="div">
+
+                                    <div>Categoría: {post.category?.name ?? 'No definido'}</div>
+                                        <div>Autor: {post.user?.name ?? 'No definido'}</div>
+                                        <div>
                                             {post.tags.map(tag => (
-                                                <Badge key={tag.name} variant="primary" className="mr-2">{tag.name}</Badge>
+                                            <Badge key={tag.id} bg="primary" className="mr-2 mb-2">{tag?.name ?? 'No definido'}</Badge>
                                             ))}
-                                    </Card.Text>
+                                        </div>
+                                        </Card.Text>
                                 </Card.Body>
                             </Card>
                         </Col>

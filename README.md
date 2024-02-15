@@ -75,6 +75,10 @@ mv composer.lock-aux composer.lock
 
 npm install
 
+8. link simbolico para acceder a storage, para las imagenes
+./vendor/bin/sail php artisan storage:link
+
+
 8. Accede al sistema desde tu navegador:
  Abre la URL "http://localhost/register" para registrar un nuevo usuario.
 

@@ -33,6 +33,10 @@ Route::get('/categories/{id}', [CategoryController::class, 'show']);
 Route::get('/tags', [TagController::class, 'index']);
 Route::get('/tags/{id}', [TagController::class, 'show']);
 
+Route::get('/post/{id}', [App\Http\Controllers\PostController::class, 'show']);
+
+
+
 
 Route::middleware(['auth:sanctum'])->group(function () {
     //categorias

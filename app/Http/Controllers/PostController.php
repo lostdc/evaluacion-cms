@@ -59,13 +59,23 @@ class PostController extends Controller
 
     public function show($id)
     {
-        try {
-            $post = Post::with('category', 'user', 'tags')->findOrFail($id);
-            return $this->success('Post obtenido con éxito', 200, $post);
-        } catch (\Exception $e) {
-            Log::error('Error al obtener el Post: ' . $e->getMessage());
-            return $this->error('Post no encontrado', 404, []);
+        $post = Post::with(['category' => function($query) {
+            $query->select('categories.id', 'categories.name');
+        }, 'user' => function($query) {
+            $query->select('users.id', 'users.name');
+        }, 'tags' => function($query) {
+            $query->select('tags.id', 'tags.name');
+        }])->findOrFail($id);
+
+        $post->makeHidden(['updated_at', 'created_at']); //hidden columns
+            // Eliminar la propiedad 'pivot' de cada tag manualmente
+        if ($post->tags && $post->tags->isNotEmpty()) {
+            $post->tags->transform(function ($tag) {
+                return $tag->makeHidden('pivot');
+            });
         }
+
+        return $this->success('Post obtenido con éxito', 200, $post);
     }
 
     public function update(UpdatePostRequest $request, $id)

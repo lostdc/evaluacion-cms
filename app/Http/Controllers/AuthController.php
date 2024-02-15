@@ -68,7 +68,12 @@ class AuthController extends Controller
                 return response()->json([
                     'token' => $token, // Usar la variable corregida
                     'role' => $role ? $role->name : null,
-                    'permissions' => $permissions
+                    'permissions' => $permissions,
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                    ]
                 ], 200);
             }
             return response()->json(['message' => 'Unauthorized'], 401);
