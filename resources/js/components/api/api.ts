@@ -55,7 +55,7 @@ export const loadCategories = async () => {
 
 export const createCategories = async (payload: any) => {
   const response = await fetchWithAuth(`/api/categories`, { 
-    method: 'PUT', 
+    method: 'POST', 
     body: payload 
   });
   return response;

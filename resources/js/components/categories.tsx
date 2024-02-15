@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Form, Table, Container, Row, Col,Alert, Modal } from 'react-bootstrap';
-import BaseLayout from './BaseLayout'; 
+import { Card, Button, Form, Table, Container, Row, Col, Alert, Modal } from 'react-bootstrap';
+import BaseLayout from './BaseLayout';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { fetchWithAuth, createCategories, updateCategories, deleteCategory, loadCategories} from './api/api';
-import { Category,ApiResponse } from './types/types';
-import { checkApiResponse } from '../helpers/apiHelpers';
+import { fetchWithAuth, createCategories, updateCategories, deleteCategory, loadCategories } from './api/api';
+import { Category } from './types/types';
 import NotificationService from '../helpers/notificationService';
 
-// Definir un tipo para la respuesta del servidor
 const Categories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState<string>('');
@@ -29,7 +27,6 @@ const Categories = () => {
       setCategories(loadedCategories);
     } catch (error) {
       if (error instanceof Error) {
-        // Utiliza NotificationService para mostrar el mensaje de error
         NotificationService.showError(error.message);
       }
     }
@@ -49,18 +46,16 @@ const Categories = () => {
       }
     } else {
       response = await createCategories(payload);
-  }
-
+    }
 
     if (response.ok) {
-
-      const data = await response.json(); // Se espera que la API siempre responda con un JSON válido.
-      setAlert({ type: 'success', message: data.message });
-      loadCategories();
+      await fetchCategories(); // Asegura que las categorías se recargan después de una operación exitosa
       setName('');
       setDescription('');
       setEditing(false);
       setEditingId(null);
+      const data = await response.json();
+      setAlert({ type: 'success', message: data.message });
     } else {
       console.error('Error al guardar la categoría');
     }
@@ -76,41 +71,37 @@ const Categories = () => {
     }
   };
 
-  // Función para mostrar el modal de confirmación
   const handleDeleteClick = (categoryId: number) => {
     setShowDeleteConfirmation(true);
     setDeleteCategoryId(categoryId);
   };
-  
-  // Función para manejar la cancelación de la eliminación
+
   const handleCancelDelete = () => {
     setShowDeleteConfirmation(false);
     setDeleteCategoryId(null);
   };
 
-  // Función modificada para manejar la eliminación
   const handleDelete = async () => {
     if (deleteCategoryId !== null) {
       try {
         const response = await deleteCategory(deleteCategoryId);
-        const data: ApiResponse<any> = await response.json(); // Asegúrate de que la respuesta se haya convertido a JSON
-        if (!response.ok || data.status === "Error") {
+        if (response.ok) {
+          await fetchCategories(); // Asegura que las categorías se recargan después de eliminar
+          setAlert({ type: 'danger', message: "Categoría eliminada con éxito." });
+        } else {
+          const data = await response.json();
           throw new Error(data.message || "Error al eliminar la categoría.");
         }
-  
-        setAlert({ type: 'danger', message: data.message });
-        loadCategories();
       } catch (error) {
         if (error instanceof Error) {
           NotificationService.showError(error.message);
         }
+      } finally {
+        setShowDeleteConfirmation(false);
+        setDeleteCategoryId(null);
       }
     }
-    setShowDeleteConfirmation(false);
-    setDeleteCategoryId(null);
   };
-  
-    
 
   return (
     <BaseLayout>
@@ -130,9 +121,9 @@ const Categories = () => {
       </Modal>
       <Container>
         {alert && (
-            <Alert variant={alert.type} onClose={() => setAlert(null)} dismissible>
+          <Alert variant={alert.type} onClose={() => setAlert(null)} dismissible>
             {alert.message}
-            </Alert>
+          </Alert>
         )}
         <Row>
           <Col md={4}>

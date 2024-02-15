@@ -40,6 +40,7 @@ class CategoryController extends Controller
     public function store(StoreCategoryRequest $request)
     {
         try {
+            $this->authorize('create', Category::class);
             $category = Category::create($request->all());
             return $this->success('Categoría creada con éxito', 201, $category);
         } catch (\Exception $e) {
@@ -52,6 +53,7 @@ class CategoryController extends Controller
     {
         try {
             $category = Category::findOrFail($id);
+            //$this->authorize('update', $category);
             $category->update($request->all());
             return $this->success('Categoría actualizada con éxito', 200, $category);
         } catch (\Exception $e) {
@@ -64,7 +66,7 @@ class CategoryController extends Controller
     {
         try {
             $category = Category::findOrFail($id);
-    
+            $this->authorize('delete', $category);
             // Verifica si la categoría está asignada a algún post.
             if ($category->posts()->count() > 0) {
                 return $this->error('La categoría no se puede eliminar porque está en uso.', 400);
