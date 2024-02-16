@@ -59,24 +59,46 @@ class PostController extends Controller
 
     public function show($id)
     {
-        $post = Post::with(['category' => function($query) {
-            $query->select('categories.id', 'categories.name');
-        }, 'user' => function($query) {
-            $query->select('users.id', 'users.name');
-        }, 'tags' => function($query) {
-            $query->select('tags.id', 'tags.name');
-        }])->findOrFail($id);
-
-        $post->makeHidden(['updated_at', 'created_at']); //hidden columns
-            // Eliminar la propiedad 'pivot' de cada tag manualmente
+        $post = Post::with([
+            'category' => function($query) {
+                $query->select('categories.id', 'categories.name');
+            }, 
+            'user' => function($query) {
+                $query->select('users.id', 'users.name');
+            }, 
+            'tags' => function($query) {
+                $query->select('tags.id', 'tags.name');
+            }, 
+            'comments' => function($query) {
+                // Selecciona los campos deseados de los comentarios
+                $query->select('comments.id', 'comments.post_id', 'comments.author_id', 'comments.content', 'comments.created_at')
+                      ->with(['user' => function($q) {
+                          // Si también deseas incluir información del autor del comentario, selecciona esos campos aquí
+                          $q->select('id', 'name');
+                      }]);
+            }
+        ])->findOrFail($id);
+    
+        // Ocultar columnas no deseadas del post
+        $post->makeHidden(['updated_at', 'created_at']);
+        
+        // Eliminar la propiedad 'pivot' de cada tag manualmente
         if ($post->tags && $post->tags->isNotEmpty()) {
             $post->tags->transform(function ($tag) {
                 return $tag->makeHidden('pivot');
             });
         }
-
+    
+        // Opcionalmente, podrías querer hacer algo similar con los comentarios si hay datos que no quieres exponer
+    
         return $this->success('Post obtenido con éxito', 200, $post);
     }
+    
+
+
+
+
+
 
     public function update(UpdatePostRequest $request, $id)
     {
@@ -93,6 +115,7 @@ class PostController extends Controller
     public function destroy($id)
     {
         try {
+            return $this->success('Post eliminado con éxito', 200, []);
             $post = Post::findOrFail($id);
             $post->delete();
             return $this->success('Post eliminado con éxito', 200, []);

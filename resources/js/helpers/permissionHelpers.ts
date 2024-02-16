@@ -10,4 +10,8 @@ export const userHasRole = (role: string): boolean => {
   return roleString === role;
 };
 
+export const IsAuthenticated = () => {
+  const token = localStorage.getItem('token');
+  return (!!token); // Establecer isAuthenticated como verdadero si hay un token presente en el LocalStorage
+};
 

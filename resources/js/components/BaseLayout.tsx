@@ -2,7 +2,7 @@
 import React from 'react';
 import { Container, Navbar, Dropdown } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { userHasPermission } from '../helpers/permissionHelpers'; // Importa la función para verificar permisos
+import { userHasPermission, IsAuthenticated } from '../helpers/permissionHelpers'; // Importa la función para verificar permisos
 
 const BaseLayout: React.FC<{ children: React.ReactNode, searchFilters?: React.ReactNode }> = ({ children, searchFilters }) => {
     const navigate = useNavigate();
@@ -31,7 +31,9 @@ const BaseLayout: React.FC<{ children: React.ReactNode, searchFilters?: React.Re
                                 <Dropdown.Item onClick={() => navigate('/home')}>Home</Dropdown.Item>
                                 {userHasPermission("show_view_categories") && <Dropdown.Item onClick={() => navigate('/category')}>Categorías</Dropdown.Item>}
                                 {userHasPermission("show_view_categories") && <Dropdown.Item onClick={() => navigate('/tags')}>Tags</Dropdown.Item>}
-                                <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
+
+                                {IsAuthenticated()  && <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>}
+                                {!IsAuthenticated()  && <Dropdown.Item onClick={() =>   window.location.href = '/login' }>Login</Dropdown.Item>}
                             </Dropdown.Menu>
                         </Dropdown>
                     </Navbar.Collapse>

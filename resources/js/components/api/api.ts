@@ -76,9 +76,6 @@ export const deleteCategory = async (categoryId: number) => {
 };
 
 
-
-
-
 export const loadTags = async () => {
   const response = await fetchWithAuth('/api/tags');
   const data: ApiResponse<Tag[]> = await response.json();
@@ -114,6 +111,7 @@ export const updatePostDetails = async (postId: string, formData: FormData): Pro
 
 
 
+
 export const savePostDetails = async (postId: string, payload: { content: string, category_id: string, tags: Tag[] }): Promise<JsonResponseMessage> => {
   try {
     const response = await fetchWithAuth(`/api/post/${postId}`, {
@@ -129,4 +127,13 @@ export const savePostDetails = async (postId: string, payload: { content: string
     console.error('Error saving post details:', error);
     throw error; // O manejar el error de manera que se prefiera
   }
+};
+
+
+
+export const deletePost = async (categoryId: number) => {
+  const response = await fetchWithAuth(`/api/posts/${categoryId}`, {
+    method: 'DELETE',
+  });
+  return response;
 };

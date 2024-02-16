@@ -1,27 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Form, Button, Card, InputGroup, FormControl } from 'react-bootstrap';
+import { Container, Form, Button, Card, InputGroup, FormControl, Alert } from 'react-bootstrap';
 import { EyeFill, EyeSlashFill } from 'react-bootstrap-icons';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [showAlert, setShowAlert] = useState(false); // Estado para controlar la visibilidad del alerta
 
     useEffect(() => {
-        // Verifica si ya existe un token en el almacenamiento local
         const token = localStorage.getItem('token');
         if (token) {
-            // Si existe un token, redirige al usuario a la página principal
             window.location.href = '/home';
         }
-        // No hay dependencias en este efecto, por lo que se deja el array vacío
-    }, []); // Array de dependencias vacío ya que no dependemos de ninguna variable o estado
+    }, []);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        setShowAlert(false); // Oculta el alerta al enviar el formulario
 
         try {
-            // Realiza la solicitud de login.
             const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
@@ -32,16 +30,17 @@ const Login: React.FC = () => {
             });
 
             if (!response.ok) {
+                if(response.statusText === "Unauthorized"){
+                    setShowAlert(true); // Muestra el alerta si las credenciales no son válidas
+                }
                 throw new Error('Error en la solicitud');
             }
 
             const data = await response.json();
-            // Guardamos el token y otros datos relevantes en el Local Storage.
             localStorage.setItem('token', data.token);
             localStorage.setItem('role', data.role);
             localStorage.setItem('permissions', JSON.stringify(data.permissions));
             localStorage.setItem('user', JSON.stringify(data.user));
-            // Redirige al usuario a la página principal
             window.location.href = '/home';
             
         } catch (error) {
@@ -54,6 +53,12 @@ const Login: React.FC = () => {
             <Card style={{ width: '400px' }} className="p-4">
                 <Card.Body>
                     <h2 className="text-center mb-4">Iniciar Sesión</h2>
+                    {/* Alerta de error de inicio de sesión */}
+                    {showAlert && (
+                        <Alert variant="danger" onClose={() => setShowAlert(false)} dismissible>
+                            Acceso no autorizado. Por favor, verifica tus credenciales.
+                        </Alert>
+                    )}
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-3" controlId="formBasicEmail">
                             <Form.Control type="email" placeholder="Ingresa tu email" value={email} onChange={(e) => setEmail(e.target.value)} />

@@ -5,12 +5,16 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Post;
 use App\Models\Tag;
+use App\Models\Comment;
 use Illuminate\Support\Facades\DB;
+use Faker\Factory as Faker;
 
 class PostsSeeder extends Seeder
 {
     public function run()
     {
+        $faker = Faker::create();
+
         // Arreglo de títulos de ejemplo
         $titles = [
             'Las Últimas Tendencias en Tecnología',
@@ -20,12 +24,10 @@ class PostsSeeder extends Seeder
             'Recetas Fáciles y Rápidas para el Día a Día',
         ];
 
-        // Crear 5 posts
-        //por defecto los 2 primeros id seran administradores y los otros 3 editores asi que cada uno tendra su publicacion
         $author_id = 1;
         foreach ($titles as $index => $title) {
             $post = Post::create([
-                'category_id' => rand(1, 10), // Categoría aleatoria basada en las categorías disponibles
+                'category_id' => rand(1, 10),
                 'author_id' => $author_id,
                 'title' => $title,
                 'content' => "Contenido de ejemplo para el post titulado '{$title}'.",
@@ -34,7 +36,18 @@ class PostsSeeder extends Seeder
             // Asignar entre 0 y 3 etiquetas de forma aleatoria
             $tagsIds = Tag::inRandomOrder()->take(rand(0, 3))->pluck('id');
             $post->tags()->attach($tagsIds);
-            $author_id ++;
+
+            // Agregar entre 2 y 6 comentarios por post
+            $commentsCount = rand(2, 6);
+            for ($i = 0; $i < $commentsCount; $i++) {
+                Comment::create([
+                    'post_id' => $post->id,
+                    'author_id' => rand(1, 10), // ID de autor aleatorio entre 1 y 10
+                    'content' => $faker->paragraph, // Contenido generado aleatoriamente
+                ]);
+            }
+
+            $author_id++;
         }
     }
 }

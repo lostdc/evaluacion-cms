@@ -27,6 +27,11 @@ const PostDetail: React.FC = () => {
   const [alert, setAlert] = useState<{ type: 'success' | 'danger'; message: string } | null>(null);
   const [editableTitle, setEditableTitle] = useState('');
 
+
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editedCommentContent, setEditedCommentContent] = useState<string>('');
+
+
   const animatedComponents = makeAnimated();
 
   useEffect(() => {
@@ -108,7 +113,6 @@ const PostDetail: React.FC = () => {
     const rawContentState = convertToRaw(editorState.getCurrentContent());
     const markup = draftToHtml(rawContentState);
     const sanitizedMarkup = DOMPurify.sanitize(markup);
-
     const formData = new FormData();
     formData.append('title', post?.title || '');
     formData.append('content', sanitizedMarkup);
@@ -117,8 +121,6 @@ const PostDetail: React.FC = () => {
     if (image) {
       formData.append('image', image, image.name);
     }
-
-
     try {
       const response = await fetch(`/api/posts/${id}`, {
         method: 'PUT',
@@ -141,6 +143,37 @@ const PostDetail: React.FC = () => {
     setUploadingImage(false);
   };
 
+    const startEditing = (commentId: number, content: string) => {
+      setEditingCommentId(commentId);
+      setEditedCommentContent(content);
+    };
+    
+    const cancelEditing = () => {
+      setEditingCommentId(null);
+      setEditedCommentContent('');
+    };
+    
+    const saveEditedComment = async () => {
+      if (editingCommentId) {
+        // Aquí agregarías tu lógica para enviar el comentario editado al servidor
+        console.log(`Guardar comentario ${editingCommentId} con el contenido: ${editedCommentContent}`);
+        
+        // Ejemplo de actualización del comentario en el estado (deberías reemplazarlo por tu lógica de actualización)
+        setPost((prevPost) => {
+          if (!prevPost) return null;
+          const updatedComments = prevPost.comments.map((comment) => {
+            if (comment.id === editingCommentId) {
+              return { ...comment, content: editedCommentContent };
+            }
+            return comment;
+          });
+          return { ...prevPost, comments: updatedComments };
+        });
+    
+        cancelEditing(); // Resetear la edición
+      }
+    };
+
   const createMarkup = (htmlContent: string) => {
     return {
       __html: DOMPurify.sanitize(htmlContent),
@@ -151,7 +184,7 @@ const PostDetail: React.FC = () => {
 
   return (
     <Container fluid="md">
-      <div style={{ width: '800px', maxWidth: '100%', margin: 'auto', padding: '1rem', backgroundColor: 'white', borderRadius: '0.25rem', border: '1px solid #ddd' }}>
+      <div className='mb-3' style={{ width: '800px', maxWidth: '100%', margin: 'auto', padding: '1rem', backgroundColor: 'white', borderRadius: '0.25rem', border: '1px solid #ddd' }}>
       <div className="mb-2">
         {canEdit ? (
           <Form.Control
@@ -234,10 +267,43 @@ const PostDetail: React.FC = () => {
            
           </Form.Group>
         )}
-        {canEdit && <Button onClick={savePost} disabled={uploadingImage}>Guardar Cambios</Button>}
+        {canEdit && <Button onClick={savePost} disabled={uploadingImage} className="me-2">Guardar Cambios</Button>}
         {canEdit && <Button onClick={savePost} disabled={uploadingImage}>Publicar</Button>}
         {alert && <Alert variant={alert.type} onClose={() => setAlert(null)} dismissible>{alert.message}</Alert>}
       </div>
+
+      {post.comments.length > 0 ? (
+        post.comments.map((comment) => (
+          <div key={comment.id} className="comment mb-3 p-3" style={{ backgroundColor: '#f8f9fa', borderRadius: '0.25rem', border: '1px solid #ddd' }}>
+            <div className="comment-header d-flex justify-content-between">
+              <h5 className="comment-author">{comment.user.name}</h5>
+              <span className="comment-date text-muted">{new Date(comment.created_at).toLocaleDateString()}</span>
+            </div>
+            {editingCommentId === comment.id ? (
+              <>
+                <Form.Control
+                  as="textarea"
+                  value={editedCommentContent}
+                  onChange={(e) => setEditedCommentContent(e.target.value)}
+                />
+                <Button variant="secondary" onClick={cancelEditing}>Cancelar</Button>
+                <Button variant="primary" onClick={saveEditedComment}>Guardar</Button>
+              </>
+            ) : (
+              <div className="comment-body mt-2">
+                {comment.content}
+                {comment.user.id === JSON.parse(localStorage.getItem('user') || '{}').id && (
+                  <Button variant="outline-primary" size="sm" onClick={() => startEditing(comment.id, comment.content)}>Editar</Button>
+                )}
+              </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <p>No hay comentarios para mostrar.</p>
+      )}
+
+
     </Container>
   );
 };
