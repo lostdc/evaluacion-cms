@@ -26,10 +26,12 @@ const PostDetail: React.FC = () => {
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'danger'; message: string } | null>(null);
   const [editableTitle, setEditableTitle] = useState('');
-
-
+  //comments
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editedCommentContent, setEditedCommentContent] = useState<string>('');
+  const [showCommentBox, setShowCommentBox] = useState(false);
+  const [newComment, setNewComment] = useState('');
+
 
 
   const animatedComponents = makeAnimated();
@@ -107,6 +109,48 @@ const PostDetail: React.FC = () => {
   const handleTagsChange = (selectedOptions: any) => {
     setSelectedTags(selectedOptions);
   };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) {
+      setAlert({ type: 'success', message: 'El comentario no puede estar vacío.' });
+      return;
+    }
+  
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Asegúrate de que el token esté almacenado en localStorage
+        },
+        body: JSON.stringify({
+          post_id: post.id, // Asegúrate de que `post` tiene el id del post actual
+          content: newComment,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Error al enviar el comentario');
+      }
+  
+      const newCommentResponse = await response.json();
+      // Actualizar el estado para incluir el nuevo comentario
+      // Asegúrate de ajustar según la estructura de tu estado y respuesta
+      setPost((currentPost) => ({
+        ...currentPost,
+        comments: [newCommentResponse.data, ...currentPost.comments],
+      }));
+  
+      setNewComment(''); // Limpiar el campo después de enviar
+      setShowCommentBox(false); // Ocultar el campo después de enviar
+    } catch (error) {
+      console.error('Error al agregar el comentario:', error);
+      setAlert({ type: 'success', message: 'Hubo un problema al agregar tu comentario. Inténtalo de nuevo.' });
+    }
+  };
+
+
+
 
   const savePost = async () => {
     setUploadingImage(true);
@@ -272,38 +316,56 @@ const PostDetail: React.FC = () => {
         {alert && <Alert variant={alert.type} onClose={() => setAlert(null)} dismissible>{alert.message}</Alert>}
       </div>
 
-      {post.comments.length > 0 ? (
-        post.comments.map((comment) => (
-          <div key={comment.id} className="comment mb-3 p-3" style={{ backgroundColor: '#f8f9fa', borderRadius: '0.25rem', border: '1px solid #ddd' }}>
-            <div className="comment-header d-flex justify-content-between">
-              <h5 className="comment-author">{comment.user.name}</h5>
-              <span className="comment-date text-muted">{new Date(comment.created_at).toLocaleDateString()}</span>
+
+        <Container fluid="md">
+          <div style={{ width: '800px', maxWidth: '100%', margin: 'auto' }}>
+          {userHasPermission('create_comments') && <Button className='mb-2' variant="primary" onClick={() => setShowCommentBox(!showCommentBox)}>Agregar Comentario</Button>}
+
+          {showCommentBox && (
+            <div className="mb-3">
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Escribe tu comentario aquí..."
+              />
+              <Button variant="success" onClick={handleAddComment} className="mt-2">Enviar Comentario</Button>
             </div>
-            {editingCommentId === comment.id ? (
-              <>
-                <Form.Control
-                  as="textarea"
-                  value={editedCommentContent}
-                  onChange={(e) => setEditedCommentContent(e.target.value)}
-                />
-                <Button variant="secondary" onClick={cancelEditing}>Cancelar</Button>
-                <Button variant="primary" onClick={saveEditedComment}>Guardar</Button>
-              </>
-            ) : (
-              <div className="comment-body mt-2">
-                {comment.content}
-                {comment.user.id === JSON.parse(localStorage.getItem('user') || '{}').id && (
-                  <Button variant="outline-primary" size="sm" onClick={() => startEditing(comment.id, comment.content)}>Editar</Button>
+          )}
+
+          {post.comments.length > 0 ? (
+            post.comments.map((comment) => (
+              <div key={comment.id} className="comment mb-3 p-3" style={{maxWidth: '800px', margin: 'auto', backgroundColor: '#f8f9fa', borderRadius: '0.25rem', border: '1px solid #ddd' }}>
+                <div className="comment-header d-flex justify-content-between">
+                  <h5 className="comment-author">{comment.user.name}</h5>
+                  <span className="comment-date text-muted">{new Date(comment.created_at).toLocaleDateString()}</span>
+                </div>
+                {editingCommentId === comment.id ? (
+                  <>
+                    <Form.Control
+                      as="textarea"
+                      value={editedCommentContent}
+                      onChange={(e) => setEditedCommentContent(e.target.value)}
+                    />
+                    <Button variant="secondary" onClick={cancelEditing}>Cancelar</Button>
+                    <Button variant="primary" onClick={saveEditedComment}>Guardar</Button>
+                  </>
+                ) : (
+                  <div className="comment-body mt-2">
+                    {comment.content}
+                    {comment.user.id === JSON.parse(localStorage.getItem('user') || '{}').id && userHasPermission('update_posts') &&  (
+                      <Button variant="outline-primary" size="sm" onClick={() => startEditing(comment.id, comment.content)}>Editar</Button>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
-        ))
-      ) : (
-        <p>No hay comentarios para mostrar.</p>
-      )}
-
-
+            ))
+          ) : (
+            <p>No hay comentarios para mostrar.</p>
+          )}
+        </div>
+      </Container>
     </Container>
   );
 };

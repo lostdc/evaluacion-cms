@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\CommentController;
+
 
 
 /*
@@ -52,6 +54,24 @@ Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
     Route::post('/tags', [TagController::class, 'store']);
     Route::put('/tags/{id}', [TagController::class, 'update']);
     Route::delete('/tags/{id}', [TagController::class, 'destroy']);
+
+    //posts
+    Route::delete('/posts/{id}', [PostController::class, 'destroy']);
+
+
+    //comentarios
+    Route::get('/comments', [CommentController::class, 'index']);
+    
+    
+    // I have a problems with other methods fix future change  to post  
+    Route::post('/comments', [CommentController::class, 'store']);
+
+
+
+    Route::get('/comments/{id}', [CommentController::class, 'show']);
+    Route::put('/comments/{id}', [CommentController::class, 'update']);
+    Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+
 
 
 });

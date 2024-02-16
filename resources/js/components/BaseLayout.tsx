@@ -36,6 +36,9 @@ const BaseLayout: React.FC<{ children: React.ReactNode, searchFilters?: React.Re
                                 {!IsAuthenticated()  && <Dropdown.Item onClick={() =>   window.location.href = '/login' }>Login</Dropdown.Item>}
                             </Dropdown.Menu>
                         </Dropdown>
+                        <span className='ms-md-4' style={{ color: 'white' }}>
+                               Bienvenido {JSON.parse(localStorage.getItem('user')).name}
+                        </span>
                     </Navbar.Collapse>
                 </Container>
             </Navbar>
